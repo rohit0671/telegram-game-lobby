@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telegram Mini App Game Lobby</title>
+    <style>
+        :root {
+            --dark-purple: #1a0a2e;
+            --light-purple: #3a1a5e;
+            --text-white: #ffffff;
+            --text-muted: #aaaaaa;
+            --card-bg: #2a1a4e;
+            --card-hover-bg: #4a2a6e;
+            --button-bg: #6a3a9e;
+            --button-hover-bg: #8a4ac2;
+            --modal-bg: rgba(0, 0, 0, 0.8);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--dark-purple);
+            color: var(--text-white);
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 15px;
+        }
+
+        /* Top Navigation */
+        .nav-tabs {
+            display: flex;
+            justify-content: space-around;
+            background-color: var(--light-purple);
+            padding: 10px 0;
+            border-bottom: 1px solid var(--card-bg);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .nav-tabs a {
+            color: var(--text-muted);
+            text-decoration: none;
+            padding: 10px 15px;
+            font-weight: bold;
+            transition: color 0.3s ease;
+        }
+
+        .nav-tabs a.active,
+        .nav-tabs a:hover {
+            color: var(--text-white);
+        }
+
+        .nav-tabs .trophy-icon {
+            font-size: 24px;
+        }
+
+        /* Game Grid */
+        .game-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            padding: 20px 0;
+        }
+
+        .game-card {
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .game-card:hover {
+            background-color: var(--card-hover-bg);
+            transform: translateY(-5px);
+        }
+
+        .game-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            margin-bottom: 10px;
+            background-color: #555; /* Default background */
+        }
+
+        .game-name {
+            font-weight: bold;
+            color: var(--text-white);
+            margin-bottom: 5px;
+        }
+
+        .game-category {
+            font-size: 0.8em;
+            color: var(--text-muted);
+        }
+
+        /* Modal */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1001; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: var(--modal-bg);
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background-color: var(--card-bg);
+            margin: auto;
+            padding: 20px;
+            border-radius: 10px;
+            width: 80%;
+            max-width: 400px;
+            text-align: center;
+            position: relative;
+        }
+
+        .close-button {
+            color: var(--text-muted);
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close-button:hover,
+        .close-button:focus {
+            color: var(--text-white);
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .modal-game-name {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .modal-game-category {
+            color: var(--text-muted);
+            margin-bottom: 20px;
+        }
+
+        .play-button {
+            background-color: var(--button-bg);
+            color: var(--text-white);
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.3s ease;
+        }
+
+        .play-button:hover {
+            background-color: var(--button-hover-bg);
+        }
+
+        /* Scroll to Top Button */
+        #scrollToTopBtn {
+            display: none; /* Hidden by default */
+            position: fixed; /* Fixed/sticky position */
+            bottom: 20px; /* Place the button at the bottom of the page */
+            right: 20px; /* Place the button at the right */
+            z-index: 999; /* Make sure it does not overlap */
+            border: none; /* Remove borders */
+            outline: none; /* Remove outline */
+            background-color: var(--button-bg); /* Set a background color */
+            color: white; /* Text color */
+            cursor: pointer; /* Add a mouse pointer on hover */
+            padding: 15px; /* Some padding */
+            border-radius: 10px; /* Rounded corners */
+            font-size: 18px; /* Increase font size */
+            transition: background-color 0.3s ease;
+        }
+
+        #scrollToTopBtn:hover {
+            background-color: var(--button-hover-bg); /* Add a darker background on hover */
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .game-grid {
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            }
+            .game-icon {
+                width: 60px;
+                height: 60px;
+                font-size: 30px;
+            }
+            .game-name {
+                font-size: 0.9em;
+            }
+            .game-category {
+                font-size: 0.7em;
+            }
+            .nav-tabs a {
+                padding: 8px 10px;
+                font-size: 0.9em;
+            }
+            .nav-tabs .trophy-icon {
+                font-size: 20px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .game-grid {
+                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            }
+            .game-icon {
+                width: 50px;
+                height: 50px;
+                font-size: 25px;
+            }
+            .game-name {
+                font-size: 0.8em;
+            }
+            .game-category {
+                font-size: 0.6em;
+            }
+            .nav-tabs a {
+                padding: 6px 8px;
+                font-size: 0.8em;
+            }
+            .nav-tabs .trophy-icon {
+                font-size: 18px;
+            }
+        }
+
+    </style>
+</head>
+<body>
+    <div class="nav-tabs">
+        <a href="#" class="active">All Games</a>
+        <a href="#">Favorite</a>
+        <a href="#" class="trophy-icon">🏆</a>
+    </div>
+
+    <div class="container">
+        <div class="game-grid" id="gameGrid">
+            <!-- Game cards will be injected here by JavaScript -->
+        </div>
+    </div>
+
+    <!-- The Modal -->
+    <div id="gameModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2 id="modalGameName" class="modal-game-name"></h2>
+            <p id="modalGameCategory" class="modal-game-category"></p>
+            <button class="play-button">Play Now</button>
+        </div>
+    </div>
+
+    <button onclick="topFunction()" id="scrollToTopBtn" title="Go to top">↑</button>
+
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script>
+                const games = [
+            { name: "Thread Match", category: "PUZZLE", emoji: "🧵", bgColor: "#F5DEB3" },
+            { name: "Mahjong Classic", category: "PUZZLE", emoji: "🀄", bgColor: "#006400" },
+            { name: "Merge Shooter", category: "ACTION", emoji: "🔫", bgColor: "#800080" },
+            { name: "Block Merge", category: "MERGE", emoji: "🟨", bgColor: "#191970" },
+            { name: "4 Colors", category: "BOARD", emoji: "🃏", bgColor: "#20B2AA" },
+            { name: "Zumba Pop Marble", category: "PUZZLE", emoji: "🔮", bgColor: "#FFA500" },
+            { name: "Collect Em All", category: "PUZZLE", emoji: "🔴", bgColor: "#36454F" },
+            { name: "Word Search Hidden", category: "PUZZLE", emoji: "🔤", bgColor: "#F5F5DC" },
+            { name: "Spades", category: "CARD GAME", emoji: "♠️", bgColor: "#006400" },
+            { name: "Mr. Shoot", category: "SHOOTING", emoji: "🎯", bgColor: "#36454F" },
+            { name: "Zombie Tower", category: "ACTION", emoji: "🧟", bgColor: "#228B22" },
+            { name: "Nuts and Bolts Sort", category: "PUZZLE", emoji: "🔩", bgColor: "#808080" }
+        ];
+
+        const gameGrid = document.getElementById('gameGrid');
+        const gameModal = document.getElementById('gameModal');
+        const modalGameName = document.getElementById('modalGameName');
+        const modalGameCategory = document.getElementById('modalGameCategory');
+        const closeButton = document.querySelector('.close-button');
+
+        function createGameCard(game) {
+            const gameCard = document.createElement('div');
+            gameCard.classList.add('game-card');
+            gameCard.innerHTML = `
+                <div class="game-icon" style="background-color: ${game.bgColor};">${game.emoji}</div>
+                <div class="game-name">${game.name}</div>
+                <div class="game-category">${game.category}</div>
+            `;
+            gameCard.addEventListener('click', () => {
+                modalGameName.textContent = game.name;
+                modalGameCategory.textContent = game.category;
+                gameModal.style.display = 'flex';
+            });
+            return gameCard;
+        }
+
+        games.forEach(game => {
+            gameGrid.appendChild(createGameCard(game));
+        });
+
+        closeButton.addEventListener('click', () => {
+            gameModal.style.display = 'none';
+        });
+
+        window.addEventListener('click', (event) => {
+            if (event.target == gameModal) {
+                gameModal.style.display = 'none';
+            }
+        });
+
+        // Scroll to top button functionality
+        const scrollToTopBtn = document.getElementById("scrollToTopBtn");
+
+        window.onscroll = function() {scrollFunction()};
+
+        function scrollFunction() {
+            if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
+                scrollToTopBtn.style.display = "block";
+            } else {
+                scrollToTopBtn.style.display = "none";
+            }
+        }
+
+        function topFunction() {
+            document.body.scrollTop = 0; // For Safari
+            document.documentElement.scrollTop = 0; // For Chrome, Firefox, IE and Opera
+        }
+
+        // Telegram Web App SDK initialization
+        if (window.Telegram && window.Telegram.WebApp) {
+            Telegram.WebApp.ready();
+            // Expand the Mini App to full screen for better user experience
+            Telegram.WebApp.expand();
+        }
+
+    </script>
+</body>
+</html>
